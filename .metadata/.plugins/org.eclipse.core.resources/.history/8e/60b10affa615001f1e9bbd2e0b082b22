@@ -1,0 +1,68 @@
+package com.app.pages;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.app.dao.CandidateDaoImpl;
+import com.app.entities.Candidate;
+import com.app.entities.User;
+
+/**
+ * Servlet implementation class AdminServlet
+ */
+@WebServlet("/admin")
+public class AdminServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		/*
+		 * 1. set
+		 * 2. pw
+		 * 3. hello -- getname
+		 * 4. log as admin
+		 * 5. impl methods a. top 2 b. party votes[group by]
+		 * 6. logout
+		*/
+		//set content type
+		response.setContentType("text/html");
+		//pw
+		
+		try(PrintWriter pw = response.getWriter()){
+			//get the session from WC
+			HttpSession session = request.getSession();
+			//name of admin
+			User user = (User)session.getAttribute("user_info");
+			pw.print("<h4>"+user.getFirstName()+user.getLastName()+"</h4>");
+			pw.print("<h4>You logged in as admin!</h4>");
+			pw.print("<h4>+Top two candidate list having max votes</h4>");
+			//candidate list
+			CandidateDaoImpl Dao = (CandidateDaoImpl)session.getAttribute("candidate_dao");
+			List<Candidate> candidates = Dao.topTwoCandidate();
+			for(Candidate c : candidates)
+				pw.print("<h4>"+c.getCandidateId()+c.getCandidateName()+"</h4>");
+			
+			//partywise
+			pw.print("Party and votes");
+			List<Candidate> partylists = Dao.partyVotes();
+			for(Candidate c : partylists)
+				pw.print("<h4>"+c.getParty(),c.getVotes()+"</h4>");
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}
